@@ -102,6 +102,7 @@ class ArmCpuCluster(CpuCluster):
         num_cpus,
         cpu_clock,
         cpu_voltage,
+        # Lower is *cpuconfig
         cpu_type,
         l1i_type,
         l1d_type,
@@ -119,7 +120,9 @@ class ArmCpuCluster(CpuCluster):
 
         self.voltage_domain = VoltageDomain(voltage=cpu_voltage)
         self.clk_domain = SrcClockDomain(
-            clock=cpu_clock, voltage_domain=self.voltage_domain
+            clock=cpu_clock,
+            voltage_domain=self.voltage_domain,
+            domain_id=system.numCpuClusters(),
         )
 
         self.generate_cpus(cpu_type, num_cpus)

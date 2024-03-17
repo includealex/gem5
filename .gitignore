@@ -8,7 +8,10 @@ cscope.out
 *~
 .*.swp
 .*.swo
-m5out
+*m5out*
+full_system/
+linux/
+system/arm/bootloader/arm64/boot_foundation.arm64
 /src/doxygen/html
 /ext/dramsim2/DRAMSim2
 /ext/mcpat/regression/*/*.out
