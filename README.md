@@ -67,3 +67,13 @@ make -C util/term/
 # From the another terminal, run:
 ./util/term/m5term localhost 3456
 ```
+
+## Compiling of benchmarks:
+
+```bash
+# This line creates binaries in the
+# arch-se-bench folder
+# Now you can add --bootscript flag
+# with provided .out test
+bash se-benchmarks-compile.sh
+```
