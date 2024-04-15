@@ -68,7 +68,81 @@ make -C util/term/
 ./util/term/m5term localhost 3456
 ```
 
-## Compiling of benchmarks:
+## Disk modification
+Firstly, you'll need an ability to change image files:
+```bash
+cd $M5_PATH/disks/
+mkdir -p mnt/
+# ubuntu-18.04-arm64-docker.img was already installed
+../../util/gem5img.py mount ubuntu-18.04-arm64-docker.img mnt
+sudo cp /etc/resolv.conf mnt/etc/
+```
+
+- Serial terminal creation. Create the `mnt/etc/init` directory. Then Modify the `mnt/etc/init/tty-gem5.conf` file:
+```
+# ttyS0 - getty
+#
+# This service maintains a getty on ttyS0 from the point the system is
+# started until it is shut down again, unless there is a script passed to gem5.
+# If there is a script, the script is executed then simulation is stopped.
+
+start on stopped rc RUNLEVEL=[12345]
+stop on runlevel [!12345]
+
+console owner
+respawn
+script
+   # Create the serial tty if it doesn't already exist
+   if [ ! -c /dev/ttyS0 ]
+   then
+      mknod /dev/ttyS0 -m 660 /dev/ttyS0 c 4 64
+   fi
+
+   # Try to read in the script from the host system
+   /sbin/m5 readfile > /tmp/script
+   chmod 755 /tmp/script
+   if [ -s /tmp/script ]
+   then
+      # If there is a script, execute the script and then exit the simulation
+      exec su root -c '/tmp/script' # gives script full privileges as root user in multi-user mode
+      /sbin/m5 exit
+   else
+      # If there is no script, login the root user and drop to a console
+      # Use m5term to connect to this console
+      exec /sbin/getty --autologin root -8 38400 ttyS0
+   fi
+end script
+```
+
+- Localhost setup. Put this into `mnt/etc/hosts` file:
+```
+127.0.0.1 localhost
+::1 localhost ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+ff02::3 ip6-allhosts
+```
+
+- Fstab setup. Put this into `mnt/etc/fstab` file :
+```
+# /etc/fstab: static file system information.
+#
+# Use 'blkid' to print the universally unique identifier for a
+# device; this may be used with UUID= as a more robust way to name devices
+# that works even if disks are added and removed. See fstab(5).
+#
+# <file system>    <mount point>   <type>  <options>   <dump>  <pass>
+/dev/hda1      /       ext3        noatime     0 1
+```
+
+- Exit:
+```bash
+../../util/gem5img.py umount mnt
+```
+
+## Compiling of Stanford benchmarks:
 
 ```bash
 # This line creates binaries in the
